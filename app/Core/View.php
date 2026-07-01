@@ -2,13 +2,22 @@
 
 namespace App\Core;
 
+/**
+ * View — AppAuto SaaS
+ *
+ * Lógica de layout inteligente:
+ *  - Views em auth/*  → usam public_header / public_footer (sem sidebar)
+ *  - Views em admin/* → usam app_header / app_footer (sidebar admin)
+ *  - Demais views     → usam app_header / app_footer (sidebar usuário)
+ *
+ * As próprias views de auth/* já incluem os layouts via require_once,
+ * portanto o View::render() apenas executa o arquivo sem envolver
+ * um segundo layout quando a view já gerencia seu próprio HTML.
+ */
 class View
 {
     private static ?Logger $logger = null;
 
-    /**
-     * Obtém a instância do logger
-     */
     private static function getLogger(): Logger
     {
         if (self::$logger === null) {
@@ -18,123 +27,109 @@ class View
     }
 
     /**
-     * Renderiza um arquivo de view com um layout.
+     * Renderiza um arquivo de view.
      *
-     * @param string $view O nome do arquivo da view (ex: "dashboard.index").
-     * @param array $data Os dados a serem extraídos e disponibilizados para a view.
+     * Views que já incluem seus próprios layouts (auth/*, admin/*, veiculos/*)
+     * são renderizadas diretamente — sem envolver um segundo layout.
+     *
+     * Views legadas (dashboard/index, home/index) ainda recebem o
+     * header/footer genérico original para não quebrar o sistema antigo.
+     *
+     * @param string $view  Caminho relativo em dot-notation (ex: "auth/login")
+     * @param array  $data  Variáveis disponibilizadas para a view
      */
     public static function render(string $view, array $data = []): void
     {
         $logger = self::getLogger();
 
         try {
-            $logger->view("Iniciando renderização de view", [
-                'view' => $view,
-                'data_keys' => array_keys($data)
-            ]);
+            $logger->view("Renderizando view: {$view}");
 
-            // Converte as chaves do array em variáveis
+            // Disponibiliza as variáveis para a view
             extract($data);
 
-            // Monta o caminho para o arquivo da view
-            $viewFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR . str_replace('.', DIRECTORY_SEPARATOR, $view) . '.php';
+            // Monta o caminho físico do arquivo
+            $viewFile = dirname(__DIR__)
+                . DIRECTORY_SEPARATOR . 'Views'
+                . DIRECTORY_SEPARATOR . str_replace(['/', '.'], DIRECTORY_SEPARATOR, $view)
+                . '.php';
 
-            $logger->view("Caminho da view construído", [
-                'view' => $view,
-                'path' => $viewFile,
-                'exists' => file_exists($viewFile)
-            ]);
+            $logger->view("Caminho: {$viewFile} | Existe: " . (file_exists($viewFile) ? 'sim' : 'não'));
 
             if (!file_exists($viewFile)) {
-                $logger->error("Arquivo de view não encontrado", [
-                    'view' => $view,
-                    'path' => $viewFile
-                ]);
                 http_response_code(500);
-                echo "Erro: View '{$view}' não encontrada no caminho: {$viewFile}";
+                echo "<h2>Erro 500 — View não encontrada</h2>";
+                echo "<p><code>{$viewFile}</code></p>";
+                $logger->error("View não encontrada: {$viewFile}");
                 exit;
             }
 
-            ob_start();
-            
-            try {
-                require $viewFile;
-            } catch (\Exception $e) {
-                ob_end_clean();
-                $logger->error("Erro ao incluir arquivo de view", [
-                    'view' => $view,
-                    'path' => $viewFile,
-                    'exception' => get_class($e),
-                    'message' => $e->getMessage()
-                ]);
-                throw $e;
+            // -------------------------------------------------------
+            // Views que gerenciam seus próprios layouts (self-contained)
+            // Prefixos: auth, admin, veiculos, negocio, perfil
+            // -------------------------------------------------------
+            $selfContained = [
+                'auth/',
+                'admin/',
+                'veiculos/',
+                'negocio/',
+                'perfil/',
+            ];
+
+            $isSelfContained = false;
+            foreach ($selfContained as $prefix) {
+                if (strpos($view, $prefix) === 0) {
+                    $isSelfContained = true;
+                    break;
+                }
             }
 
+            if ($isSelfContained) {
+                // A view inclui seus próprios layouts internamente
+                require $viewFile;
+                $logger->view("View self-contained renderizada: {$view}");
+                return;
+            }
+
+            // -------------------------------------------------------
+            // Views legadas: captura conteúdo e envolve com layout ERP
+            // -------------------------------------------------------
+            $viewsDir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR . 'layout' . DIRECTORY_SEPARATOR;
+
+            // Preferência: erp_header/erp_footer (layout completo do ERP)
+            // Fallback: header/footer (layout genérico)
+            $headerFile = file_exists($viewsDir . 'erp_header.php')
+                ? $viewsDir . 'erp_header.php'
+                : $viewsDir . 'header.php';
+
+            $footerFile = file_exists($viewsDir . 'erp_footer.php')
+                ? $viewsDir . 'erp_footer.php'
+                : $viewsDir . 'footer.php';
+
+            ob_start();
+            require $viewFile;
             $content = ob_get_clean();
 
-            $logger->view("Conteúdo da view capturado com sucesso", [
-                'view' => $view,
-                'content_length' => strlen($content)
-            ]);
-
-            // Inclui o layout, que usará a variável $content
-            $headerFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR . 'layout' . DIRECTORY_SEPARATOR . 'header.php';
-            $footerFile = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR . 'layout' . DIRECTORY_SEPARATOR . 'footer.php';
-
-            $logger->view("Verificando existência de layouts", [
-                'header_exists' => file_exists($headerFile),
-                'footer_exists' => file_exists($footerFile)
-            ]);
-
             if (file_exists($headerFile)) {
-                try {
-                    require $headerFile;
-                    $logger->view("Header incluído com sucesso");
-                } catch (\Exception $e) {
-                    $logger->error("Erro ao incluir header", [
-                        'path' => $headerFile,
-                        'message' => $e->getMessage()
-                    ]);
-                    throw $e;
-                }
-            }
-            
-            echo $content;
-            
-            if (file_exists($footerFile)) {
-                try {
-                    require $footerFile;
-                    $logger->view("Footer incluído com sucesso");
-                } catch (\Exception $e) {
-                    $logger->error("Erro ao incluir footer", [
-                        'path' => $footerFile,
-                        'message' => $e->getMessage()
-                    ]);
-                    throw $e;
-                }
+                require $headerFile;
             }
 
-            $logger->view("Renderização de view concluída com sucesso", [
-                'view' => $view
-            ]);
+            echo $content;
+
+            if (file_exists($footerFile)) {
+                require $footerFile;
+            }
+
+            $logger->view("View legada renderizada: {$view}");
 
         } catch (\Exception $e) {
-            $logger->error("Erro crítico ao renderizar view", [
-                'view' => $view,
-                'exception' => get_class($e),
-                'message' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            
-            // Re-lançar a exceção para ser capturada pelo handler global
+            $logger->error("Erro ao renderizar view '{$view}': " . $e->getMessage() . " em " . $e->getFile() . ':' . $e->getLine());
             throw $e;
         }
     }
 
     /**
-     * Retorna o campo de input oculto com o token CSRF.
-     * @return string
+     * Retorna o campo hidden com o token CSRF.
      */
     public static function csrfField(): string
     {

@@ -14,5 +14,5 @@ return [
     'database' => isset($_ENV['DB_DATABASE']) ? $_ENV['DB_DATABASE'] : '',
     'username' => isset($_ENV['DB_USERNAME']) ? $_ENV['DB_USERNAME'] : '',
     'password' => isset($_ENV['DB_PASSWORD']) ? $_ENV['DB_PASSWORD'] : '',
-    'charset'  => 'utf8mb4',
+    'charset'  => 'utf8', // utf8 para compatibilidade com MySQL 5.7 / Hostgator
 ];

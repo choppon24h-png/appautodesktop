@@ -1,6 +1,34 @@
+# AppAuto SaaS — .htaccess PUBLIC
+# Redireciona todas as requisições para index.php
+# Compatível com Hostgator / cPanel / Apache 2.4
+
+Options -Indexes
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
+
+    # Define a base corretamente (necessário quando em subpasta)
+    # RewriteBase /
+
+    # Permite acesso direto a arquivos reais (css, js, imagens, etc.)
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+
+    # Passa TUDO para index.php mantendo a URI original
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Segurança: bloqueia acesso a arquivos PHP exceto index.php
+<FilesMatch "^(?!index\.php$).*\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Cache de assets estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/png  "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType text/css   "access plus 1 week"
+    ExpiresByType text/javascript "access plus 1 week"
 </IfModule>
