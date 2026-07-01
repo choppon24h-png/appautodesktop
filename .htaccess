@@ -1,20 +1,10 @@
-# AppAuto SaaS — .htaccess RAIZ
-# Redireciona todo tráfego para a pasta public/
-# Compatível com Hostgator / cPanel / Apache 2.4
+Options -Indexes
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Permite acesso direto a arquivos e diretórios reais
+    # Redireciona tudo para a pasta public/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-
-    # Redireciona para public/
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
-
-# Segurança: bloqueia acesso direto a arquivos sensíveis
-<FilesMatch "\.(env|log|sql|json|lock|md|gitignore)$">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
