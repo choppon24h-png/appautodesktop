@@ -1,4 +1,4 @@
-# Environment variables
+# Environment variables — NUNCA versionar com dados reais
 .env
 .env.local
 .env.*.local
@@ -18,9 +18,13 @@ storage/logs/*
 .DS_Store
 Thumbs.db
 
-# Composer
-vendor/
-composer.lock
+# Composer — vendor/ INCLUÍDO no repositório para deploy sem SSH/Composer no Hostgator
+# composer.lock incluído para garantir versões exatas
+# vendor/  <-- REMOVIDO do gitignore propositalmente
 
 # Cache
 *.cache
+
+# Uploads de usuários (não versionar arquivos enviados)
+public/assets/uploads/*
+!public/assets/uploads/.gitkeep
