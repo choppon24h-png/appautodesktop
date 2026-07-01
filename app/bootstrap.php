@@ -68,8 +68,8 @@ if (($_ENV['APP_ENV'] ?? 'dev') === 'prod') {
     ini_set('log_errors', '1');
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 
-    set_error_handler(function ($severity, $message, $file, $line) use ($logger) {
-        $logger->error("PHP Error", [
+    set_error_handler(function ($severity, $message, $file, $line) {
+        Logger::error("PHP Error", [
             'severity' => $severity,
             'message' => $message,
             'file' => $file,
@@ -77,8 +77,8 @@ if (($_ENV['APP_ENV'] ?? 'dev') === 'prod') {
         ]);
     });
 
-    set_exception_handler(function ($exception) use ($logger) {
-        $logger->error("Exceção não capturada", [
+    set_exception_handler(function ($exception) {
+        Logger::error("Exceção não capturada", [
             'exception' => get_class($exception),
             'message' => $exception->getMessage(),
             'file' => $exception->getFile(),
