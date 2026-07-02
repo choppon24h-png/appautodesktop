@@ -3,7 +3,7 @@
 use App\Core\Router;
 
 // ============================================================
-// APPAUTO SaaS — Rotas Completas
+// APPAUTO SaaS — Rotas Completas v2.0
 // ============================================================
 
 // ---- Públicas (sem autenticação) ----
@@ -25,7 +25,27 @@ Router::group(["middleware" => "Auth"], function () {
     Router::get("/dashboard", "DashboardController@index");
     Router::post("/logout",   "AuthController@logout");
 
-    // Veículos
+    // =========================================================
+    // PORTAL DE VEÍCULOS (PF e PJ)
+    // =========================================================
+
+    // Dashboard do Portal
+    Router::get("/portal/dashboard",         "PortalController@dashboard");
+    Router::post("/portal/selecionar-veiculo","PortalController@selecionarVeiculo");
+
+    // Veículos (módulo original mantido)
+    Router::get("/portal/veiculos",                     "VeiculosController@index");
+    Router::get("/portal/veiculos/adicionar",           "VeiculosController@showAdicionar");
+    Router::post("/portal/veiculos/adicionar",          "VeiculosController@adicionar");
+    Router::get("/portal/veiculos/consultar-placa",     "VeiculosController@showConsultarPlaca");
+    Router::get("/portal/veiculos/api/consultar-placa", "VeiculosController@apiConsultarPlaca");
+    Router::post("/portal/veiculos/api/ocr",            "VeiculosController@apiOCR");
+    Router::get("/portal/veiculos/{id}",                "VeiculosController@show");
+    Router::get("/portal/veiculos/{id}/editar",         "VeiculosController@showEditar");
+    Router::post("/portal/veiculos/{id}/editar",        "VeiculosController@editar");
+    Router::post("/portal/veiculos/{id}/excluir",       "VeiculosController@excluir");
+
+    // Compat. rotas antigas de veículos
     Router::get("/veiculos",                     "VeiculosController@index");
     Router::get("/veiculos/adicionar",           "VeiculosController@showAdicionar");
     Router::post("/veiculos/adicionar",          "VeiculosController@adicionar");
@@ -37,17 +57,82 @@ Router::group(["middleware" => "Auth"], function () {
     Router::post("/veiculos/{id}/editar",        "VeiculosController@editar");
     Router::post("/veiculos/{id}/excluir",       "VeiculosController@excluir");
 
-    // Perfil e Configurações
-    Router::get("/perfil",        "PerfilController@index");
-    Router::post("/perfil",       "PerfilController@atualizar");
-    Router::get("/configuracoes", "ConfiguracoesController@index");
+    // Manutenções
+    Router::get("/portal/manutencoes",           "PortalController@manutencoes");
+    Router::get("/portal/manutencoes/adicionar", "PortalController@adicionarManutencao");
+    Router::post("/portal/manutencoes/salvar",   "PortalController@salvarManutencao");
 
-    // Negócio
+    // Documentos
+    Router::get("/portal/documentos",           "PortalController@documentos");
+    Router::get("/portal/documentos/adicionar", "PortalController@adicionarDocumento");
+    Router::post("/portal/documentos/salvar",   "PortalController@salvarDocumento");
+
+    // Abastecimentos
+    Router::get("/portal/abastecimentos",           "PortalController@abastecimentos");
+    Router::get("/portal/abastecimentos/adicionar", "PortalController@adicionarAbastecimento");
+    Router::post("/portal/abastecimentos/salvar",   "PortalController@salvarAbastecimento");
+
+    // Pneus
+    Router::get("/portal/pneus",         "PortalController@pneus");
+    Router::post("/portal/pneus/salvar", "PortalController@salvarPneu");
+
+    // Bateria
+    Router::get("/portal/bateria",         "PortalController@bateria");
+    Router::post("/portal/bateria/salvar", "PortalController@salvarBateria");
+
+    // Seguro
+    Router::get("/portal/seguro",         "PortalController@seguro");
+    Router::post("/portal/seguro/salvar", "PortalController@salvarSeguro");
+
+    // Custos
+    Router::get("/portal/custos", "PortalController@custos");
+
+    // Agenda Inteligente
+    Router::get("/portal/agenda",         "PortalController@agenda");
+    Router::post("/portal/agenda/salvar", "PortalController@salvarAgenda");
+
+    // Checklist
+    Router::get("/portal/checklist",       "PortalController@checklist");
+    Router::get("/portal/checklist/novo",  "PortalController@novoChecklist");
+    Router::post("/portal/checklist/salvar","PortalController@salvarChecklist");
+
+    // Galeria
+    Router::get("/portal/galeria",         "PortalController@galeria");
+    Router::post("/portal/galeria/salvar", "PortalController@salvarFoto");
+
+    // Timeline
+    Router::get("/portal/timeline", "PortalController@timeline");
+
+    // IPVA / Multas
+    Router::get("/portal/ipva", "PortalController@ipva");
+
+    // Relatórios
+    Router::get("/portal/relatorios", "PortalController@relatorios");
+
+    // Assistente IA
+    Router::get("/portal/ia",        "PortalController@ia");
+    Router::post("/portal/ia/chat",  "PortalController@iaChat");
+
+    // Marketplace
+    Router::get("/portal/marketplace", "PortalController@marketplace");
+
+    // =========================================================
+    // PORTAL MEU NEGÓCIO (PJ)
+    // =========================================================
     Router::get("/negocio/dashboard", "NegocioController@dashboard");
     Router::get("/negocio/clientes",  "NegocioController@clientes");
     Router::get("/negocio/servicos",  "NegocioController@servicos");
 
-    // Admin
+    // =========================================================
+    // PERFIL E CONFIGURAÇÕES
+    // =========================================================
+    Router::get("/perfil",        "PerfilController@index");
+    Router::post("/perfil",       "PerfilController@atualizar");
+    Router::get("/configuracoes", "ConfiguracoesController@index");
+
+    // =========================================================
+    // PAINEL ADMIN
+    // =========================================================
     Router::get("/admin/dashboard",            "AdminController@dashboard");
     Router::get("/admin/clientes/pessoas",     "AdminController@clientesPessoas");
     Router::get("/admin/clientes/negocios",    "AdminController@clientesNegocios");
@@ -59,7 +144,9 @@ Router::group(["middleware" => "Auth"], function () {
     Router::get("/admin/usuario/{id}",         "AdminController@verUsuario");
     Router::get("/admin/negocio/{id}",         "AdminController@verNegocio");
 
-    // Módulos legados (mantidos da estrutura original)
+    // =========================================================
+    // MÓDULOS LEGADOS (compatibilidade com estrutura original)
+    // =========================================================
     Router::get("/clientes",                   "ClientesController@index");
     Router::get("/financeiro/contas-a-pagar",  "FinanceiroController@contasAPagar");
     Router::get("/financeiro/contas-a-receber","FinanceiroController@contasAReceber");
