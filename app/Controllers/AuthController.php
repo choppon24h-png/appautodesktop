@@ -225,14 +225,27 @@ class AuthController extends Controller
     }
 
     // ----------------------------------------------------------------
-    // POST /logout
+    // POST /logout  (aceita GET também via rota adicional)
     // ----------------------------------------------------------------
     public function logout(): void
     {
         $email = $_SESSION['user_email'] ?? 'desconhecido';
         Logger::info("Logout: {$email}");
+
+        // Limpar sessão completamente
+        $_SESSION = [];
+        if (ini_get('session.use_cookies')) {
+            $params = session_get_cookie_params();
+            setcookie(
+                session_name(), '', time() - 42000,
+                $params['path'], $params['domain'],
+                $params['secure'], $params['httponly']
+            );
+        }
         session_destroy();
-        $this->redir('/login');
+
+        header('Location: /login');
+        exit();
     }
 
     // ----------------------------------------------------------------

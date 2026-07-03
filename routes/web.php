@@ -24,6 +24,7 @@ Router::group(["middleware" => "Auth"], function () {
     Router::get("/",          "HomeController@index");
     Router::get("/dashboard", "DashboardController@index");
     Router::post("/logout",   "AuthController@logout");
+    Router::get("/logout",    "AuthController@logout");  // suporte a link GET
 
     // =========================================================
     // PORTAL DE VEÍCULOS (PF e PJ)

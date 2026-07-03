@@ -111,7 +111,7 @@ class PortalController extends Controller
         $veiculoId = $this->getVeiculoAtivo();
 
         if (!$veiculoId) {
-            $this->redirect('/portal/veiculos');
+            $this->redir('/portal/veiculos');
             return;
         }
 
@@ -153,7 +153,7 @@ class PortalController extends Controller
         );
 
         Logger::info("Manutenção cadastrada: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/manutencoes');
+        $this->redir('/portal/manutencoes');
     }
 
     // =========================================================
@@ -189,7 +189,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         $arquivo = '';
         if (!empty($_FILES['arquivo']['name'])) {
@@ -210,7 +210,7 @@ class PortalController extends Controller
         ]);
 
         Logger::info("Documento cadastrado: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/documentos');
+        $this->redir('/portal/documentos');
     }
 
     // =========================================================
@@ -256,7 +256,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         $litros = (float)str_replace(',', '.', $_POST['litros'] ?? '0');
         $valorLitro = (float)str_replace(',', '.', $_POST['valor_litro'] ?? '0');
@@ -287,7 +287,7 @@ class PortalController extends Controller
         );
 
         Logger::info("Abastecimento cadastrado: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/abastecimentos');
+        $this->redir('/portal/abastecimentos');
     }
 
     // =========================================================
@@ -317,7 +317,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         // Desativar pneu anterior na mesma posição
         $stmt = $this->db->prepare("
@@ -347,7 +347,7 @@ class PortalController extends Controller
         ]);
 
         Logger::info("Pneu cadastrado: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/pneus');
+        $this->redir('/portal/pneus');
     }
 
     // =========================================================
@@ -377,7 +377,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         $this->db->prepare("UPDATE veiculo_bateria SET ativo = 0 WHERE veiculo_id = ? AND usuario_id = ?")
                  ->execute([$veiculoId, $userId]);
@@ -402,7 +402,7 @@ class PortalController extends Controller
         ]);
 
         Logger::info("Bateria cadastrada: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/bateria');
+        $this->redir('/portal/bateria');
     }
 
     // =========================================================
@@ -432,7 +432,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         $stmt = $this->db->prepare("
             INSERT INTO veiculo_seguro
@@ -456,7 +456,7 @@ class PortalController extends Controller
         ]);
 
         Logger::info("Seguro cadastrado: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/seguro');
+        $this->redir('/portal/seguro');
     }
 
     // =========================================================
@@ -524,7 +524,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         $stmt = $this->db->prepare("
             INSERT INTO veiculo_agenda
@@ -543,7 +543,7 @@ class PortalController extends Controller
         ]);
 
         Logger::info("Agenda cadastrada: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/agenda');
+        $this->redir('/portal/agenda');
     }
 
     // =========================================================
@@ -586,7 +586,7 @@ class PortalController extends Controller
         $userId    = $_SESSION['user_id'];
         $veiculoId = $this->getVeiculoAtivo();
 
-        if (!$veiculoId) { $this->redirect('/portal/veiculos'); return; }
+        if (!$veiculoId) { $this->redir('/portal/veiculos'); return; }
 
         $stmt = $this->db->prepare("
             INSERT INTO veiculo_checklist (veiculo_id, usuario_id, tipo, titulo, data_checklist, observacao)
@@ -619,7 +619,7 @@ class PortalController extends Controller
         }
 
         Logger::info("Checklist salvo: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/checklist');
+        $this->redir('/portal/checklist');
     }
 
     // =========================================================
@@ -650,7 +650,7 @@ class PortalController extends Controller
         $veiculoId = $this->getVeiculoAtivo();
 
         if (!$veiculoId || empty($_FILES['foto']['name'])) {
-            $this->redirect('/portal/galeria');
+            $this->redir('/portal/galeria');
             return;
         }
 
@@ -670,7 +670,7 @@ class PortalController extends Controller
         ]);
 
         Logger::info("Foto adicionada à galeria: veiculo_id={$veiculoId}");
-        $this->redirect('/portal/galeria');
+        $this->redir('/portal/galeria');
     }
 
     // =========================================================
@@ -811,7 +811,7 @@ class PortalController extends Controller
             }
         }
 
-        $this->redirect('/portal/dashboard');
+        $this->redir('/portal/dashboard');
     }
 
     // =========================================================

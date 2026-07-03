@@ -3,20 +3,25 @@
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Core\View;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(): void
     {
-        // Se o usuário não está autenticado, redireciona para o login
-        if (!isset($_SESSION["user_id"])) {
-            header("Location: /login");
+        // Não autenticado → login
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: /login');
             exit();
         }
 
-        // Se está autenticado, redireciona para o dashboard
-        header("Location: /dashboard");
+        // Admin → painel administrativo
+        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+            header('Location: /admin/dashboard');
+            exit();
+        }
+
+        // Qualquer outro usuário (PF ou PJ) → Portal de Veículos
+        header('Location: /portal/dashboard');
         exit();
     }
 }
