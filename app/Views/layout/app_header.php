@@ -218,7 +218,7 @@ $userPerfil= $_SESSION['user_perfil']?? 'usuario';
 $tipoConta = $_SESSION['tipo_conta'] ?? 'pessoal';
 $isAdmin   = ($userPerfil === 'admin');
 $isImpersonating = !empty($_SESSION['admin_original_id']);
-$currentUri = $_SERVER['REQUEST_URI'] ?? '/';
+$currentUri = (string)($_SERVER['REQUEST_URI'] ?? '/');
 
 function navActive(string $path): string {
     global $currentUri;
