@@ -3,6 +3,23 @@ $pageTitle = 'Dashboard';
 require_once __DIR__ . '/../layout/portal_header.php';
 ?>
 
+<!-- Auto-selecionar primeiro veículo se não houver ativo -->
+<?php
+if (empty($_SESSION['veiculo_ativo_id']) && !empty($totalVeiculos) && $totalVeiculos > 0) {
+    // Buscar o primeiro veículo do usuário e ativá-lo automaticamente
+    try {
+        $dbAuto = \App\Core\Database::getInstance();
+        $stmtAuto = $dbAuto->prepare("SELECT id, placa, modelo FROM veiculos WHERE usuario_id = ? ORDER BY criado_em ASC LIMIT 1");
+        $stmtAuto->execute([$_SESSION['user_id']]);
+        $vAuto = $stmtAuto->fetch(\PDO::FETCH_ASSOC);
+        if ($vAuto) {
+            $_SESSION['veiculo_ativo_id']    = $vAuto['id'];
+            $_SESSION['veiculo_ativo_placa'] = $vAuto['placa'];
+            $_SESSION['veiculo_ativo_modelo']= $vAuto['modelo'] ?? '';
+        }
+    } catch (\Exception $e) {}
+}
+?>
 <!-- Alerta de veículo não selecionado -->
 <?php if (empty($_SESSION['veiculo_ativo_id'])): ?>
 <div class="alert alert-warning d-flex align-items-center gap-3 mb-4" role="alert">

@@ -179,7 +179,7 @@ class AdminController extends Controller
         $_SESSION['tipo_conta']  = $usuario->tipo_conta;
 
         Logger::info("Admin impersonou usuário #{$id}: {$usuario->email}");
-        $this->redir('/dashboard');
+        $this->redir('/portal/dashboard');
     }
 
     // ----------------------------------------------------------------

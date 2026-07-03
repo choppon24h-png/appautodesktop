@@ -13,7 +13,7 @@ class PortalController extends Controller
     public function __construct()
     {
         parent::__construct();
-        $this->db = Database::getInstance()->getConnection();
+        $this->db = Database::getInstance();
         $this->requireAuth();
     }
 

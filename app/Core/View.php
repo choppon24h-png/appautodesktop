@@ -74,6 +74,7 @@ class View
                 'veiculos/',
                 'negocio/',
                 'perfil/',
+                'portal/',
             ];
 
             $isSelfContained = false;
