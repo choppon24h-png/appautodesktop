@@ -29,7 +29,12 @@ class AuthController extends Controller
     public function showLoginForm(): void
     {
         if (!empty($_SESSION['user_id'])) {
-            $this->redir('/dashboard');
+            // Redirecionar conforme o tipo de usuário já logado
+            if (($_SESSION['user_type'] ?? $_SESSION['user_perfil'] ?? '') === 'admin') {
+                $this->redir('/admin/dashboard');
+            } else {
+                $this->redir('/portal/dashboard');
+            }
             return;
         }
         View::render('auth/login', ['title' => 'Login']);
@@ -75,7 +80,7 @@ class AuthController extends Controller
         if ($usuario->perfil === 'admin') {
             $this->redir('/admin/dashboard');
         } else {
-            $this->redir('/dashboard');
+            $this->redir('/portal/dashboard');
         }
     }
 

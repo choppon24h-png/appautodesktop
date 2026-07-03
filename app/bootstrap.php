@@ -69,12 +69,17 @@ if (($_ENV['APP_ENV'] ?? 'dev') === 'prod') {
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 
     set_error_handler(function ($severity, $message, $file, $line) {
+        // Ignorar E_DEPRECATED (8192) e E_STRICT (2048) em produção
+        if ($severity & (E_DEPRECATED | E_STRICT | E_USER_DEPRECATED)) {
+            return false; // Deixar o PHP lidar normalmente (suprimir)
+        }
         Logger::error("PHP Error", [
             'severity' => $severity,
             'message' => $message,
             'file' => $file,
             'line' => $line
         ]);
+        return true;
     });
 
     set_exception_handler(function ($exception) {
