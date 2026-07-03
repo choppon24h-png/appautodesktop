@@ -31,19 +31,18 @@ Router::group(["middleware" => "Auth"], function () {
 
     // Dashboard do Portal
     Router::get("/portal/dashboard",         "PortalController@dashboard");
-    Router::post("/portal/selecionar-veiculo","PortalController@selecionarVeiculo");
 
-    // Veículos (módulo original mantido)
-    Router::get("/portal/veiculos",                     "VeiculosController@index");
-    Router::get("/portal/veiculos/adicionar",           "VeiculosController@showAdicionar");
-    Router::post("/portal/veiculos/adicionar",          "VeiculosController@adicionar");
-    Router::get("/portal/veiculos/consultar-placa",     "VeiculosController@showConsultarPlaca");
-    Router::get("/portal/veiculos/api/consultar-placa", "VeiculosController@apiConsultarPlaca");
-    Router::post("/portal/veiculos/api/ocr",            "VeiculosController@apiOCR");
-    Router::get("/portal/veiculos/{id}",                "VeiculosController@show");
-    Router::get("/portal/veiculos/{id}/editar",         "VeiculosController@showEditar");
-    Router::post("/portal/veiculos/{id}/editar",        "VeiculosController@editar");
-    Router::post("/portal/veiculos/{id}/excluir",       "VeiculosController@excluir");
+    // Veículos — Portal (usa portal_header.php com sidebar do portal)
+    Router::get("/portal/veiculos",                     "PortalVeiculosController@index");
+    Router::get("/portal/veiculos/adicionar",           "PortalVeiculosController@showAdicionar");
+    Router::post("/portal/veiculos/adicionar",          "PortalVeiculosController@adicionar");
+    Router::get("/portal/veiculos/consultar-placa",     "PortalVeiculosController@showConsultarPlaca");
+    Router::get("/portal/veiculos/api/consultar-placa", "PortalVeiculosController@apiConsultarPlaca");
+    Router::post("/portal/veiculos/api/ocr",            "PortalVeiculosController@apiOCR");
+    Router::post("/portal/selecionar-veiculo",          "PortalVeiculosController@selecionarVeiculo");
+    Router::get("/portal/veiculos/{id}/editar",         "PortalVeiculosController@showEditar");
+    Router::post("/portal/veiculos/{id}/editar",        "PortalVeiculosController@editar");
+    Router::post("/portal/veiculos/{id}/excluir",       "PortalVeiculosController@excluir");
 
     // Compat. rotas antigas de veículos
     Router::get("/veiculos",                     "VeiculosController@index");
