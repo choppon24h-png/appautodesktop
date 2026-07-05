@@ -19,7 +19,7 @@ function isActive(string $path, string $current): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?? 'Portal de Veículos' ?> — AppAuto</title>
-    <link rel="icon" type="image/png" href="/assets/img/logo.png">
+    <link rel="icon" type="image/png" href="/assets/logo.png">
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -161,7 +161,7 @@ function isActive(string $path, string $current): string {
 <!-- Sidebar -->
 <nav id="sidebar">
     <div class="sidebar-brand">
-        <img src="/assets/img/logo.png" alt="AppAuto">
+        <img src="/assets/logo.png" alt="AppAuto" onerror="this.style.display='none'">
         <div>
             <span>AppAuto</span>
             <small>Portal de Veículos</small>

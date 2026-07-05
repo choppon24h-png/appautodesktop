@@ -15,7 +15,9 @@ class HomeController extends Controller
         }
 
         // Admin → painel administrativo
-        if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+        // Usa user_perfil (salvo pelo AuthController) — NÃO user_role
+        $perfil = $_SESSION['user_perfil'] ?? $_SESSION['user_role'] ?? '';
+        if ($perfil === 'admin') {
             header('Location: /admin/dashboard');
             exit();
         }

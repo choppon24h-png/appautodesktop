@@ -21,59 +21,81 @@ class PortalController extends Controller
     // =========================================================
     public function dashboard(): void
     {
-        $userId = $_SESSION['user_id'];
+        $userId    = $_SESSION['user_id'];
         $veiculoId = $_SESSION['veiculo_ativo_id'] ?? null;
 
-        $totalVeiculos      = $this->count('veiculos', $userId);
-        $totalManutencoes   = $veiculoId ? $this->count('veiculo_manutencoes', $userId, $veiculoId) : 0;
-        $totalAbastecimentos = $veiculoId ? $this->count('veiculo_abastecimentos', $userId, $veiculoId) : 0;
-        $totalDocumentos    = $veiculoId ? $this->count('veiculo_documentos', $userId, $veiculoId) : 0;
-
-        $ultimasManutencoes = [];
-        $alertas = [];
-        $scoreVeiculo = 0;
+        // Valores padrão — protegidos contra tabelas inexistentes (migration 002 pode não ter sido importada)
+        $totalVeiculos       = 0;
+        $totalManutencoes    = 0;
+        $totalAbastecimentos = 0;
+        $totalDocumentos     = 0;
+        $ultimasManutencoes  = [];
+        $alertas             = [];
+        $scoreVeiculo        = 0;
         $ptsManu = $ptsDocs = $ptsPneus = $ptsBat = $ptsSeg = 0;
+        $migrationPendente   = false;
 
-        if ($veiculoId) {
-            // Últimas 5 manutenções
-            $stmt = $this->db->prepare("
-                SELECT tipo, data_servico, km_servico, valor
-                FROM veiculo_manutencoes
-                WHERE veiculo_id = ? AND usuario_id = ?
-                ORDER BY data_servico DESC LIMIT 5
-            ");
-            $stmt->execute([$veiculoId, $userId]);
-            $ultimasManutencoes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        try {
+            $totalVeiculos = $this->count('veiculos', $userId);
+        } catch (\Exception $e) {
+            Logger::error('Dashboard: tabela veiculos nao existe', ['err' => $e->getMessage()]);
+            $migrationPendente = true;
+        }
 
-            // Score
-            $stmt2 = $this->db->prepare("SELECT * FROM veiculo_score WHERE veiculo_id = ? LIMIT 1");
-            $stmt2->execute([$veiculoId]);
-            $scoreRow = $stmt2->fetch(\PDO::FETCH_ASSOC);
-            if ($scoreRow) {
-                $scoreVeiculo = $scoreRow['score_total'];
-                $ptsManu  = $scoreRow['pts_manutencao'];
-                $ptsDocs  = $scoreRow['pts_documentos'];
-                $ptsPneus = $scoreRow['pts_pneus'];
-                $ptsBat   = $scoreRow['pts_bateria'];
-                $ptsSeg   = $scoreRow['pts_seguro'];
+        if (!$migrationPendente) {
+            try {
+                $totalManutencoes    = $veiculoId ? $this->count('veiculo_manutencoes', $userId, $veiculoId) : 0;
+                $totalAbastecimentos = $veiculoId ? $this->count('veiculo_abastecimentos', $userId, $veiculoId) : 0;
+                $totalDocumentos     = $veiculoId ? $this->count('veiculo_documentos', $userId, $veiculoId) : 0;
+            } catch (\Exception $e) {
+                Logger::error('Dashboard: tabelas portal nao existem (migration 002 pendente)', ['err' => $e->getMessage()]);
+                $migrationPendente = true;
             }
+        }
 
-            // Alertas de agenda vencida/próxima
-            $stmt3 = $this->db->prepare("
-                SELECT tipo_servico as titulo, descricao
-                FROM veiculo_agenda
-                WHERE veiculo_id = ? AND usuario_id = ? AND concluido = 0
-                  AND (data_prevista <= DATE_ADD(NOW(), INTERVAL 7 DAY) OR data_prevista IS NULL)
-                ORDER BY data_prevista ASC LIMIT 5
-            ");
-            $stmt3->execute([$veiculoId, $userId]);
-            $alertas = $stmt3->fetchAll(\PDO::FETCH_ASSOC);
+        if (!$migrationPendente && $veiculoId) {
+            try {
+                $stmt = $this->db->prepare("
+                    SELECT tipo, data_servico, km_servico, valor
+                    FROM veiculo_manutencoes
+                    WHERE veiculo_id = ? AND usuario_id = ?
+                    ORDER BY data_servico DESC LIMIT 5
+                ");
+                $stmt->execute([$veiculoId, $userId]);
+                $ultimasManutencoes = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+            } catch (\Exception $e) { /* ignora */ }
+
+            try {
+                $stmt2 = $this->db->prepare("SELECT * FROM veiculo_score WHERE veiculo_id = ? LIMIT 1");
+                $stmt2->execute([$veiculoId]);
+                $scoreRow = $stmt2->fetch(\PDO::FETCH_ASSOC);
+                if ($scoreRow) {
+                    $scoreVeiculo = $scoreRow['score_total'];
+                    $ptsManu  = $scoreRow['pts_manutencao'];
+                    $ptsDocs  = $scoreRow['pts_documentos'];
+                    $ptsPneus = $scoreRow['pts_pneus'];
+                    $ptsBat   = $scoreRow['pts_bateria'];
+                    $ptsSeg   = $scoreRow['pts_seguro'];
+                }
+            } catch (\Exception $e) { /* ignora */ }
+
+            try {
+                $stmt3 = $this->db->prepare("
+                    SELECT tipo_servico as titulo, descricao
+                    FROM veiculo_agenda
+                    WHERE veiculo_id = ? AND usuario_id = ? AND concluido = 0
+                      AND (data_prevista <= DATE_ADD(NOW(), INTERVAL 7 DAY) OR data_prevista IS NULL)
+                    ORDER BY data_prevista ASC LIMIT 5
+                ");
+                $stmt3->execute([$veiculoId, $userId]);
+                $alertas = $stmt3->fetchAll(\PDO::FETCH_ASSOC);
+            } catch (\Exception $e) { /* ignora */ }
         }
 
         View::render('portal/dashboard', compact(
             'totalVeiculos','totalManutencoes','totalAbastecimentos','totalDocumentos',
             'ultimasManutencoes','alertas','scoreVeiculo',
-            'ptsManu','ptsDocs','ptsPneus','ptsBat','ptsSeg'
+            'ptsManu','ptsDocs','ptsPneus','ptsBat','ptsSeg','migrationPendente'
         ));
     }
 
